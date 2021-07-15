@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_main.xml"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.gelato.gelatogallery.ui.main.MainFragment"
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_mainFragment_to_fullscreenImageFragment"
+            app:destination="@id/fullscreenImageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/fullscreenImageFragment"
+        android:name="com.gelato.gelatogallery.ui.main.FullscreenImageFragment"
+        android:label="fragment_fullscreen_image"
+        tools:layout="@layout/fragment_fullscreen_image" >
+        <argument
+            android:name="image"
+            app:argType="com.gelato.gelatogallery.data.model.ImageItem" />
+    </fragment>
+</navigation>
