@@ -17,7 +17,7 @@ class ImagesAdapter :
     class ImagesDiff : DiffUtil.ItemCallback<ImageItem>() {
 
         override fun areItemsTheSame(oldItem: ImageItem, newItem: ImageItem): Boolean {
-            return oldItem == newItem
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: ImageItem, newItem: ImageItem): Boolean {

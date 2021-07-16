@@ -2,11 +2,9 @@ package com.gelato.gelatogallery.data.data_source
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.paging.PagingSource
 import com.gelato.gelatogallery.utils.ErrorType
 import com.gelato.gelatogallery.utils.RemoteErrorEmitter
-import com.gelato.gelatogallery.utils.UtilsHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -17,13 +15,14 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-abstract class BasePagingSource<T:Any,U:Any>() : PagingSource<T,U>(),KoinComponent {
+abstract class BasePagingSource<T : Any, U : Any> : PagingSource<T, U>(), KoinComponent {
 
     companion object {
         private const val TAG = "BaseRemoteRepository"
         private const val MESSAGE_KEY = "message"
         private const val ERROR_KEY = "error"
     }
+
     val context: Context by inject()
 
     /**
@@ -32,22 +31,20 @@ abstract class BasePagingSource<T:Any,U:Any>() : PagingSource<T,U>(),KoinCompone
      * override suspend fun loginUser(body: LoginUserBody, emitter: RemoteErrorEmitter): LoginUserResponse?  = safeApiCall( { authApi.loginUser(body)} , emitter)
      * @param emitter is the interface that handles the error messages. The error messages must be displayed on the MainThread, or else they would throw an Exception.
      */
-    suspend inline fun <T> safeApiCall(emitter: RemoteErrorEmitter, crossinline callFunction: suspend () -> T): T? {
-        return try{
-            if (UtilsHelper.isNetworkAvailable(context)) {
-                val myObject = withContext(Dispatchers.IO) { callFunction.invoke() }
-                myObject
-            } else {
-                emitter.onError(ErrorType.NO_INTERNET)
-                return null
-            }
-        }catch (e: Exception){
-            withContext(Dispatchers.Main){
+    suspend inline fun <T> safeApiCall(
+        emitter: RemoteErrorEmitter,
+        crossinline callFunction: suspend () -> T
+    ): T? {
+        return try {
+            val myObject = withContext(Dispatchers.IO) { callFunction.invoke() }
+            myObject
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
                 e.printStackTrace()
                 Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
-                when(e){
+                when (e) {
                     is HttpException -> {
-                        if(e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
+                        if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
                         else {
                             val body = e.response()?.errorBody()
                             emitter.onError(getErrorMessage(body))
@@ -70,15 +67,15 @@ abstract class BasePagingSource<T:Any,U:Any>() : PagingSource<T,U>(),KoinCompone
      * @param emitter is the interface that handles the error messages. The error messages must be displayed on the MainThread, or else they would throw an Exception.
      */
     inline fun <T> safeApiCallNoContext(emitter: RemoteErrorEmitter, callFunction: () -> T): T? {
-        return try{
+        return try {
             val myObject = callFunction.invoke()
             myObject
-        }catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
-            when(e){
+            when (e) {
                 is HttpException -> {
-                    if(e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
+                    if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
                     else {
                         val body = e.response()?.errorBody()
                         emitter.onError(getErrorMessage(body))

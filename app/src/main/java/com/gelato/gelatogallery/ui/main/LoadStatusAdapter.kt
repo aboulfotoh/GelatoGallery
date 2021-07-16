@@ -9,9 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.gelato.gelatogallery.databinding.LoadStateFooterViewItemBinding
 
 
-class LoadStatusAdapter(private val mListener: OnItemClickListener) :
+class LoadStatusAdapter(private val retry: () -> Unit) :
     LoadStateAdapter<LoadStatusAdapter.ViewHolder>() {
-
 
     class ViewHolder
     constructor(
@@ -24,16 +23,16 @@ class LoadStatusAdapter(private val mListener: OnItemClickListener) :
                 binding.errorMsg.text = loadState.error.localizedMessage
             }
             binding.progressBar.isVisible = loadState is LoadState.Loading
-            binding.retryButton.isVisible = loadState is LoadState.Error
+            binding.retryButton.isVisible = loadState is LoadState.Error || loadState is LoadState.NotLoading
             binding.errorMsg.isVisible = loadState is LoadState.Error
         }
 
         companion object {
-            fun form(parent: ViewGroup, mListener: OnItemClickListener): ViewHolder {
+            fun form(parent: ViewGroup, retry: () -> Unit): ViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding = LoadStateFooterViewItemBinding.inflate(inflater, parent, false)
                 binding.retryButton.setOnClickListener {
-                    mListener.onItemClicked()
+                    retry.invoke()
                 }
                 return ViewHolder(
                     binding
@@ -42,15 +41,11 @@ class LoadStatusAdapter(private val mListener: OnItemClickListener) :
         }
     }
 
-    interface OnItemClickListener {
-        fun onItemClicked()
-    }
-
     override fun onBindViewHolder(holder: ViewHolder, loadState: LoadState) {
         holder.bind(loadState)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, loadState: LoadState): ViewHolder {
-        return ViewHolder.form(parent,mListener!!)
+        return ViewHolder.form(parent,retry)
     }
 }

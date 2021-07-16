@@ -18,6 +18,7 @@ class MainViewModel(private val imagesRepo: ImagesRepo) : BaseViewModel() {
     private var currentSearchResult: Flow<PagingData<ImageItem>>? = null
 
     fun getImages(): Flow<PagingData<ImageItem>> {
+        val lastResult = currentSearchResult
         val newResult: Flow<PagingData<ImageItem>> = imagesRepo.getImages(this)
             .cachedIn(viewModelScope)
         currentSearchResult = newResult

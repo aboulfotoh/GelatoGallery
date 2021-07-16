@@ -10,14 +10,13 @@
         android:name="com.gelato.gelatogallery.ui.main.MainFragment"
         android:label="MainFragment" >
         <action
-            android:id="@+id/action_mainFragment_to_fullscreenImageFragment"
-            app:destination="@id/fullscreenImageFragment" />
+            android:id="@+id/action_mainFragment_to_imageFragment"
+            app:destination="@id/imageFragment" />
     </fragment>
     <fragment
-        android:id="@+id/fullscreenImageFragment"
-        android:name="com.gelato.gelatogallery.ui.main.FullscreenImageFragment"
-        android:label="fragment_fullscreen_image"
-        tools:layout="@layout/fragment_fullscreen_image" >
+        android:id="@+id/imageFragment"
+        android:name="com.gelato.gelatogallery.ui.main.ImageFragment"
+        android:label="ImageFragment" >
         <argument
             android:name="image"
             app:argType="com.gelato.gelatogallery.data.model.ImageItem" />

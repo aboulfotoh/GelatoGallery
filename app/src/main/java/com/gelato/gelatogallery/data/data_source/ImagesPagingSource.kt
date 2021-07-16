@@ -5,9 +5,11 @@ import com.gelato.gelatogallery.data.model.ImageItem
 import com.gelato.gelatogallery.data.model.Images
 import com.gelato.gelatogallery.network.ApiEndpointInterface
 import com.gelato.gelatogallery.reposetories.ImagesRepo
+import com.gelato.gelatogallery.utils.ErrorType
 import com.gelato.gelatogallery.utils.RemoteErrorEmitter
 import okio.IOException
 import retrofit2.HttpException
+import java.net.SocketTimeoutException
 
 private const val STARTING_PAGE_INDEX = 1
 
@@ -23,10 +25,9 @@ class ImagesPagingSource(private val serviceApi: ApiEndpointInterface,private va
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ImageItem> {
         val position = (params.key ?: STARTING_PAGE_INDEX)
         return try {
-            val response = safeApiCall(emitter){
+            val response =
                 serviceApi.getImages(position, params.loadSize)
-            }
-            if (response!=null){
+
                 val nextKey = if (response.isEmpty()) {
                     null
                 } else {
@@ -35,22 +36,24 @@ class ImagesPagingSource(private val serviceApi: ApiEndpointInterface,private va
                     position + (params.loadSize / 10)
                 }
                 LoadResult.Page(
-                    data = response!!,
+                    data = response,
                     prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,
                     nextKey = nextKey
                 )
-            } else
-                LoadResult.Page(
-                    data = Images(),
-                    prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,
-                    nextKey = null
-                )
-
-
-        } catch (exception: IOException) {
-            return LoadResult.Error(exception)
-        } catch (exception: HttpException) {
-            return LoadResult.Error(exception)
+        } catch (e: Exception) {
+            when (e) {
+                is HttpException -> {
+                    if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
+                    else {
+                        val body = e.response()?.errorBody()
+                        emitter.onError(getErrorMessage(body))
+                    }
+                }
+                is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
+                is java.io.IOException -> emitter.onError(ErrorType.NETWORK)
+                else -> emitter.onError(ErrorType.UNKNOWN)
+            }
+            return LoadResult.Error(e)
         }
     }
 }
